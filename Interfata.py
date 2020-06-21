@@ -4,7 +4,11 @@ import os
 import wx.grid
 import time
 import sys
-print(sys.version)
+import numpy as np
+import random
+rnd = np.random
+rnd.seed(0)
+# import eX
 
 
 class Example(wx.Frame):
@@ -49,6 +53,8 @@ class Example(wx.Frame):
         p.bt5 = wx.Button(p, label='Liniar ', size=(70, 25))
         p.bt6 = wx.Button(p, label='Euristic', size=(70, 25))
         p.bt7 = wx.Button(p, label='Euristic redundant', size=(110, 25))
+        p.bt8 = wx.Button(p, label='ACO', size=(70, 25))
+        p.bt9 = wx.Button(p, label='ACO redundant', size=(110, 25))
         p.search.Add(p.tc, proportion=1, flag=wx.LEFT |
                      wx.RIGHT | wx.ALIGN_CENTER, border=20)
         p.search.Add(p.bt1, flag=wx.RIGHT, border=20)
@@ -58,6 +64,8 @@ class Example(wx.Frame):
         p.but.Add(p.bt3, flag=wx.RIGHT, border=20)
         p.but.Add(p.bt6, flag=wx.RIGHT, border=20)
         p.but.Add(p.bt7, flag=wx.RIGHT, border=20)
+        p.but.Add(p.bt8, flag=wx.RIGHT, border=20)
+        p.but.Add(p.bt9, flag=wx.RIGHT, border=20)
         p.but.Add(p.bt4, flag=wx.RIGHT, border=20)
         p.bt1.Bind(wx.EVT_BUTTON, p.SaveFile)
         p.bt2.Bind(wx.EVT_BUTTON, self.OP)
@@ -65,10 +73,18 @@ class Example(wx.Frame):
         p.bt5.Bind(wx.EVT_BUTTON, self.CuRedundante)
         p.bt6.Bind(wx.EVT_BUTTON, self.Euristic)
         p.bt7.Bind(wx.EVT_BUTTON, self.EuristicFaraRedundante)
+        p.bt8.Bind(wx.EVT_BUTTON, self.Aoc)
+        p.bt9.Bind(wx.EVT_BUTTON, self.AocFaraRedundante)
         p.bt4.Bind(wx.EVT_BUTTON, self.Close)
         p.SetSizer(p.box)
         p.midP.SetSizer(p.midP.box)
         p.valori.SetSizer(p.valori.box)
+        p.bt3.Disable()
+        p.bt5.Disable()
+        p.bt6.Disable()
+        p.bt7.Disable()
+        p.bt8.Disable()
+        p.bt9.Disable()
 
     def Close(self, event):
         self.Destroy()
@@ -104,7 +120,9 @@ class Example(wx.Frame):
 
         self.grid = wx.grid.Grid(self.midP, -1)
         ParteaOP.Tabel(self.grid, self.DateTabel2, self.PretCentru2, self.TipDroneCentru2, self.DistantaTotala2,
-                       self.NrDroneMici2, self.NrDroneMari2, self.PretTotal2, self.IdPuncte2, self.nrPacienti2, self.timp2)
+                       self.NrDroneMici2, self.NrDroneMari2, self.PretTotal2, self.IdPuncte2, self.nrPacienti2,
+                       self.timp2,
+                       self.Pi, self.Di)
         self.midP.box.Add(self.grid, wx.ID_ANY, wx.ALIGN_CENTRE, 20)
         self.midP.Refresh()
         self.Layout()
@@ -139,7 +157,84 @@ class Example(wx.Frame):
 
         self.grid = wx.grid.Grid(self.midP, -1)
         ParteaOP.Tabel(self.grid, self.DateTabel2, self.PretCentru2, self.TipDroneCentru2, self.DistantaTotala2,
-                       self.NrDroneMici2, self.NrDroneMari2, self.PretTotal2, self.IdPuncte2, self.nrPacienti2, self.timp2)
+                       self.NrDroneMici2, self.NrDroneMari2, self.PretTotal2, self.IdPuncte2, self.nrPacienti2,
+                       self.timp2,
+                       self.Pi, self.Di)
+        self.midP.box.Add(self.grid, wx.ID_ANY, wx.ALIGN_CENTRE, 20)
+        self.midP.Refresh()
+        self.Layout()
+
+    def Aoc(self, event):
+        if 'imgd' in vars(self.midP):
+            self.midP.imgd.Destroy()
+            vars(self.midP).pop('imgd')
+
+        if 'grid' in vars(self):
+            self.grid.Destroy()
+            vars(self).pop('grid')
+
+        self.midP.imgd = wx.Image('./ant1.png', wx.BITMAP_TYPE_ANY)
+        self.d = self.midP.imgd.GetSize()
+        self.p = self.midP.GetSize()
+
+        if self.d[0] > self.p[0]:
+            self.midP.png = self.midP.imgd.Scale(
+                self.p[0] - 10 * self.p[0] // 100, self.d[1], wx.IMAGE_QUALITY_HIGH)
+            self.d = self.midP.imgd.GetSize()
+        if self.d[1] > self.p[1]:
+            self.midP.imgd = self.midP.imgd.Scale(
+                self.d[0], self.p[1], wx.IMAGE_QUALITY_HIGH)
+        self.d = self.midP.imgd.GetSize()
+
+        self.midP.imgd = wx.StaticBitmap(
+            self.midP, -1, wx.BitmapFromImage(self.midP.imgd))
+        self.midP.box.Add(self.midP.imgd, wx.ID_ANY,
+                          wx.EXPAND | wx.ALL | wx.ALIGN_LEFT, 20)
+        self.midP.Refresh()
+        self.Layout()
+
+        self.grid = wx.grid.Grid(self.midP, -1)
+        ParteaOP.Tabel(self.grid, self.DateTabel3, self.PretCentru3, self.TipDroneCentru3, self.DistantaTotala3,
+                       self.NrDroneMici3, self.NrDroneMari3, self.PretTotal3, self.IdPuncte3, self.nrPacienti3,
+                       self.timp3,
+                       self.Pi, self.Di)
+        self.midP.box.Add(self.grid, wx.ID_ANY, wx.ALIGN_CENTRE, 20)
+        self.midP.Refresh()
+        self.Layout()
+
+    def AocFaraRedundante(self, event):
+        if 'imgd' in vars(self.midP):
+            self.midP.imgd.Destroy()
+            vars(self.midP).pop('imgd')
+
+        if 'grid' in vars(self):
+            self.grid.Destroy()
+            vars(self).pop('grid')
+
+        self.midP.imgd = wx.Image('./ant2.png', wx.BITMAP_TYPE_ANY)
+        self.d = self.midP.imgd.GetSize()
+        self.p = self.midP.GetSize()
+
+        if self.d[0] > self.p[0]:
+            self.midP.png = self.midP.imgd.Scale(
+                self.p[0] - 10 * self.p[0] // 100, self.d[1], wx.IMAGE_QUALITY_HIGH)
+            self.d = self.midP.imgd.GetSize()
+        if self.d[1] > self.p[1]:
+            self.midP.imgd = self.midP.imgd.Scale(
+                self.d[0], self.p[1], wx.IMAGE_QUALITY_HIGH)
+        self.d = self.midP.imgd.GetSize()
+
+        self.midP.imgd = wx.StaticBitmap(
+            self.midP, -1, wx.BitmapFromImage(self.midP.imgd))
+        self.midP.box.Add(self.midP.imgd, wx.ID_ANY,
+                          wx.EXPAND | wx.ALL | wx.ALIGN_LEFT, 20)
+        self.midP.Refresh()
+        self.Layout()
+
+        self.grid = wx.grid.Grid(self.midP, -1)
+        ParteaOP.Tabel(self.grid, self.DateTabel3, self.PretCentru3, self.TipDroneCentru3, self.DistantaTotala3,
+                       self.NrDroneMici3, self.NrDroneMari3, self.PretTotal3, self.IdPuncte3, self.nrPacienti3, self.timp3,
+                       self.Pi, self.Di)
         self.midP.box.Add(self.grid, wx.ID_ANY, wx.ALIGN_CENTRE, 20)
         self.midP.Refresh()
         self.Layout()
@@ -175,7 +270,8 @@ class Example(wx.Frame):
 
         self.grid = wx.grid.Grid(self.midP, -1)
         ParteaOP.Tabel(self.grid, self.DateTabel, self.PretCentru, self.TipDroneCentru, self.DistantaTotala,
-                       self.NrDroneMici, self.NrDroneMari, self.PretTotal, self.IdPuncte, self.nrPacienti, self.timp1)
+                       self.NrDroneMici, self.NrDroneMari, self.PretTotal, self.IdPuncte, self.nrPacienti, self.timp1,
+                       self.Pi, self.Di)
         self.midP.box.Add(self.grid, wx.ID_ANY, wx.ALIGN_CENTRE, 20)
         self.midP.Refresh()
         self.Layout()
@@ -211,7 +307,7 @@ class Example(wx.Frame):
 
         self.grid = wx.grid.Grid(self.midP, -1)
         ParteaOP.Tabel(self.grid, self.DateTabel, self.PretCentru, self.TipDroneCentru, self.DistantaTotala,
-                       self.NrDroneMici, self.NrDroneMari, self.PretTotal, self.IdPuncte, self.nrPacienti, self.timp1)
+                       self.NrDroneMici, self.NrDroneMari, self.PretTotal, self.IdPuncte, self.nrPacienti, self.timp1, self.Pi, self.Di)
         self.midP.box.Add(self.grid, wx.ID_ANY, wx.ALIGN_CENTRE, 20)
         self.midP.Refresh()
         self.Layout()
@@ -230,16 +326,51 @@ class Example(wx.Frame):
         else:
             I, R, Raza, k, Pk, costLow, costBig = ParteaOP.citire(
                 self.tc.GetValue())
-            start = time.time()
-            Pi, Di, self.DateTabel, self.PretCentru, self.TipDroneCentru, self.DistantaTotala, self.NrDroneMici, self.NrDroneMari, self.PretTotal, self.IdPuncte, self.nrPacienti = ParteaOP.OP(
-                I, R, Raza, k, Pk, costLow, costBig)
-            end = time.time()
-            self.timp1 = end - start
-            start = time.time()
-            self.DateTabel2, self.PretCentru2, self.TipDroneCentru2, self.DistantaTotala2, self.NrDroneMici2, self.NrDroneMari2, self.PretTotal2, self.IdPuncte2, self.nrPacienti2 = ParteaOP.Euristic(
-                I, R, Raza, k, Pk, costLow, costBig, Pi, Di)
-            end = time.time()
-            self.timp2 = end - start
+            try:
+                start = time.time()
+                self.Pi, self.Di, self.DateTabel, self.PretCentru, self.TipDroneCentru, self.DistantaTotala, self.NrDroneMici, self.NrDroneMari, self.PretTotal, self.IdPuncte, self.nrPacienti = ParteaOP.OP(
+                    I, R, Raza, k, Pk, costLow, costBig)
+                end = time.time()
+                self.timp1 = end - start
+                start = time.time()
+                self.DateTabel2, self.PretCentru2, self.TipDroneCentru2, self.DistantaTotala2, self.NrDroneMici2, self.NrDroneMari2, self.PretTotal2, self.IdPuncte2, self.nrPacienti2 = ParteaOP.Euristic(
+                    I, R, Raza, k, Pk, costLow, costBig, self.Pi, self.Di)
+                end = time.time()
+                self.timp2 = end - start
+                start = time.time()
+                self.DateTabel3, self.PretCentru3, self.TipDroneCentru3, self.DistantaTotala3, self.NrDroneMici3, self.NrDroneMari3, self.PretTotal3, self.IdPuncte3, self.nrPacienti3 = ParteaOP.ACO(
+                    I, R, Raza, k, Pk, costLow, costBig, self.Pi, self.Di)
+                end = time.time()
+                self.timp3 = end - start
+                self.bt3.Enable()
+                self.bt5.Enable()
+                self.bt6.Enable()
+                self.bt7.Enable()
+                self.bt8.Enable()
+                self.bt9.Enable()
+            except:
+                self.Pi = {i: rnd.randint(1, Pk[1]) for i in I}
+                self.Pi.update({i: 0 for i in R})
+                # print(Pi) #Pick-up amount
+                self.Di = {i: rnd.randint(1, Pk[1]) for i in I}
+                self.Di.update({i: 0 for i in R})
+                start = time.time()
+                self.DateTabel2, self.PretCentru2, self.TipDroneCentru2, self.DistantaTotala2, self.NrDroneMici2, self.NrDroneMari2, self.PretTotal2, self.IdPuncte2, self.nrPacienti2 = ParteaOP.Euristic(
+                    I, R, Raza, k, Pk, costLow, costBig, self.Pi, self.Di)
+                end = time.time()
+                self.timp2 = end - start
+                start = time.time()
+                self.DateTabel3, self.PretCentru3, self.TipDroneCentru3, self.DistantaTotala3, self.NrDroneMici3, self.NrDroneMari3, self.PretTotal3, self.IdPuncte3, self.nrPacienti3 = ParteaOP.ACO(
+                    I, R, Raza, k, Pk, costLow, costBig, self.Pi, self.Di)
+                end = time.time()
+                self.timp3 = end - start
+                self.bt3.Disable()
+                self.bt5.Disable()
+                self.bt6.Enable()
+                self.bt7.Enable()
+                self.bt8.Enable()
+                self.bt9.Enable()
+
             if 'imgd' in vars(self.midP):
                 self.midP.imgd.Destroy()
                 vars(self.midP).pop('imgd')
@@ -269,7 +400,7 @@ class Example(wx.Frame):
 
             self.grid = wx.grid.Grid(self.midP, -1)
             ParteaOP.Tabel(self.grid, self.DateTabel2, self.PretCentru2, self.TipDroneCentru2, self.DistantaTotala2,
-                           self.NrDroneMici2, self.NrDroneMari2, self.PretTotal2, self.IdPuncte2, self.nrPacienti2, self.timp2)
+                           self.NrDroneMici2, self.NrDroneMari2, self.PretTotal2, self.IdPuncte2, self.nrPacienti2, self.timp2,self.Pi,self.Di)
             self.midP.box.Add(self.grid, wx.ID_ANY, wx.ALIGN_CENTRE, 20)
             self.midP.Refresh()
             self.Layout()
