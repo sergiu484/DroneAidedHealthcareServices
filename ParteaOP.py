@@ -137,7 +137,7 @@ def OP(I, R, Raza, k, Pk, priceSmall, priceBig):
         n += 1
     print("Id=", IdPuncte)
 
-    # Constangere pentru arcele dintre pacienti
+    # Constangere pentru arcele dintre pacienti si centre de drone
     # A = Arcele de la pacientul i la pacientul j cu conditia sa fie in acelasi zona de acoeperire a Centrului de Drona
     A = [(V[i], V[j])for i in range(0, len(V)) for j in range(0, len(V)) for z in CP.keys() if i != j and (V[i] in CP[z] or V[i] in CP.keys())
          and (V[j] in CP[z] or V[j] in CP.keys()) and not(i < len(R1) and j < len(R1))]
@@ -188,7 +188,7 @@ def OP(I, R, Raza, k, Pk, priceSmall, priceBig):
     # Constangere(6) = Verifica ca drona sa nu viziteze acelasi element
     mdl.add_indicator_constraints(mdl.indicator_constraint(hk[i, j], u[i] + D[(i, j)] == u[j])for z in CP.keys()
                                   for i, j in A if i not in R1 and j not in R1)
-    # Constrangere Cantitate
+    # Constrangere Cantitate(livrare si preluare)
     mdl.add_indicator_constraints(mdl.indicator_constraint(hk[i, j], Cantitate[i] + ProgresIncarcatura[(i, j)] == Cantitate[j])
                                   for z in CP.keys() for i, j in A if i not in R1 and j not in R1)
     # Constrangere ce verifica distanta de zbor a dronei sa nu depaseasca distanta maxima(Drona Mare)
@@ -252,15 +252,15 @@ def OP(I, R, Raza, k, Pk, priceSmall, priceBig):
         for z in i[1:]:
             sum += ParteaSP.distanta2Puncte(j, z)
             j = z
-        print('Distanta cale', sum)
+        # print('Distanta cale', sum)
         ClasificareCai[-1].append(i)
         # clasificare in functie de Distanta daca este de Tip1 sau Tip2
         if sum <= Pk[0]:
             ClasificareCai[-1].append(0)
-            print('Clasificare cai in functie de Distanta, Drona Mica', ClasificareCai)
+            # print('Clasificare cai in functie de Distanta, Drona Mica', ClasificareCai)
         else:
             ClasificareCai[-1].append(1)
-            print('Clasificare cai in functie de Distanta, Drona Mare', ClasificareCai)
+            # print('Clasificare cai in functie de Distanta, Drona Mare', ClasificareCai)
 
     # Eliminam duplicatele
     unice = 0
@@ -281,7 +281,7 @@ def OP(I, R, Raza, k, Pk, priceSmall, priceBig):
     for i in range(len(ClasificareCai)-1, -1, -1):
         if ClasificareCai[i][0][0] != ClasificareCai[i][0][-1]:
             'ClasificareCai[i][0][-1]=ClasificareCai[i][0][0]'
-            print('arata', ClasificareCai[i][0][-1], ClasificareCai[i][0][0])
+            # print('arata', ClasificareCai[i][0][-1], ClasificareCai[i][0][0])
             L1 = ClasificareCai[i][0][:len(ClasificareCai[i][0])//2]
             L2 = ClasificareCai[i][0][len(ClasificareCai[i][0])//2:]
             print('L:', L1, L2)
